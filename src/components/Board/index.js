@@ -18,6 +18,9 @@ export class Board extends React.Component {
         super(props);
         this.state = {
             squares: [null, null, null, null, null, null, null, null, null],
+            history: [[null, null, null, null, null, null, null, null, null]],
+            currentHistoryCount: 0,
+            countMoves: 0,
             nextItem: "X",
             winner: null,
         };
@@ -25,19 +28,39 @@ export class Board extends React.Component {
 
     onSquareClick(id) {
         const squares = this.state.squares.slice();
+        const history = this.state.history.slice();
+        let countMoves = this.state.countMoves;
+        let currentHistoryCount = this.state.currentHistoryCount;
         if(!squares[id]) {
             squares[id] = this.state.nextItem;
             const winnerFound = winningLines.some(line => {
                 return line.every(item => squares[item] === this.state.nextItem);
             });
             const currentItem = this.state.nextItem;
+            history.push(squares);
+            countMoves++;
+            currentHistoryCount++;
             this.setState({
                 squares,
+                history,
+                currentHistoryCount,
+                countMoves,
                 nextItem: currentItem === "X" ? "O" : "X",
                 winner: winnerFound? currentItem: null,
             });
         }
     };
+
+    gotoPrevious() {
+        const { history } = this.state;
+        let currentHistoryCount = this.state.currentHistoryCount;
+        currentHistoryCount--;
+        const squares = history[currentHistoryCount].slice();
+        this.setState({
+            squares,
+            currentHistoryCount
+        });
+    }
 
     getSquare(id) {
         return <Square id={this.state.squares[id]} onClick={() => {
@@ -69,6 +92,11 @@ export class Board extends React.Component {
                         {this.getSquare(8)}
                     </div>
                 </div>
+                {this.state.currentHistoryCount > 0 && <div>
+                    <button onClick={() => {
+                        this.gotoPrevious();
+                    }}>Go to Previous Move</button>
+                </div>}
             </div>
         );
     }
